@@ -1,0 +1,27 @@
+{
+  "name": "@enterprise-ai-console/admin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "lint": "eslint src --ext .ts,.vue --max-warnings=0"
+  },
+  "dependencies": {
+    "@enterprise-ai-console/auth": "workspace:*",
+    "@unocss/reset": "^66.4.2",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.17",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.12",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "@vue/tsconfig": "^0.7.0",
+    "typescript": "^5.8.3",
+    "unocss": "^66.4.2",
+    "vite": "^7.0.0",
+    "vue-tsc": "^3.0.1"
+  }
+}

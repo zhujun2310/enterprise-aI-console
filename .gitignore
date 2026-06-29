@@ -1,0 +1,8 @@
+node_modules
+.pnpm-store
+.DS_Store
+coverage
+*.log
+apps/admin/dist
+server/dist
+packages/*/dist

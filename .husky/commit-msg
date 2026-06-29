@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+set -e
+
+pnpm hook:commit-msg "$1"

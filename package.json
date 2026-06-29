@@ -1,0 +1,52 @@
+{
+  "name": "enterprise-ai-console",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.9.0",
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter @enterprise-ai-console/admin dev\" \"pnpm --filter @enterprise-ai-console/server dev\"",
+    "build": "pnpm -r build",
+    "lint": "eslint . --ext .ts,.tsx,.js,.cjs,.mjs,.vue --max-warnings=0",
+    "format": "prettier --write .",
+    "commit": "sh ./scripts/git/auto-commit.sh",
+    "commit:prompt": "pnpm exec git-cz",
+    "prepare": "husky",
+    "lint-staged": "lint-staged",
+    "hook:pre-commit": "sh ./scripts/husky/pre-commit.sh",
+    "hook:prepare-commit-msg": "sh ./scripts/husky/prepare-commit-msg.sh",
+    "hook:commit-msg": "sh ./scripts/husky/commit-msg.sh",
+    "hook:pre-push": "sh ./scripts/husky/pre-push.sh"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-git"
+    }
+  },
+  "lint-staged": {
+    "*.{js,cjs,mjs,ts,tsx,vue,json,md,yml,yaml}": [
+      "prettier --write"
+    ],
+    "*.{js,ts,tsx,vue}": [
+      "eslint --fix"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "@eslint/js": "^9.30.0",
+    "@types/node": "^24.0.12",
+    "commitizen": "^4.3.2",
+    "concurrently": "^9.2.0",
+    "cz-git": "^1.13.1",
+    "eslint": "^9.30.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-vue": "^10.4.0",
+    "globals": "^16.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.35.1",
+    "vue-eslint-parser": "^10.2.0"
+  }
+}

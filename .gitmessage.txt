@@ -1,0 +1,13 @@
+# <type>(<scope>): <subject>
+#
+# Example:
+# feat(admin): add login guard
+#
+# Allowed scopes:
+# repo, admin, server, auth, ai-sdk, constants, hooks, request, types, ui, utils, docs, ci, deps, release
+#
+# Required trailer:
+# Refs: N/A
+#
+# If ticket numbers are introduced later, use:
+# Refs: EA-123

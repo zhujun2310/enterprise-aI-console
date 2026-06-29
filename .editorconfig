@@ -1,0 +1,30 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = sp  "lint-staged": "lint-stagcoverage
+ *.log
+astapps":server/dist
+pacjpackages/*sxEOF
+cat > .premlcaamnode_modules
+.pnpm-store
+coverage
+di],.pnpm-store,tcoverage
+d":dist
+pn  pnpliEOF
+catx"
+    ]ca }root = true
+
+[*]
+charset = utf-8
+emi
+[*]
+chars: "ch0.end_of_line = mmindent_style = onindent_size = 2
+ins0"insert_final_n/jtrim_trailing_whitespace =/nEOF
+cat > .npmrc <<'EOF'rica-eauto-install-peers=true
+str5.strict-peer-dependencislEOF
+cat > pnpm-workspace.yamlcocaurpackages:
+  - apps/*
+  - packages/*
+  - 0 - appsslint-config- - server
