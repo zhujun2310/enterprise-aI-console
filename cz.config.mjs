@@ -1,5 +1,5 @@
-const { execSync } = require('node:child_process');
-const { definePrompt } = require('cz-git');
+import { execSync } from 'node:child_process';
+import { definePrompt } from 'cz-git';
 
 const scopes = [
   'repo',
@@ -32,7 +32,7 @@ function getIssueKeyFromBranch(branchName) {
   return match ? match[0] : 'N/A';
 }
 
-module.exports = definePrompt({
+export default definePrompt({
   messages: {
     type: '选择提交类型:',
     scope: '选择影响范围:',
