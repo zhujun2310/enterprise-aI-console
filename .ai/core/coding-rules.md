@@ -14,17 +14,25 @@
 
 ---
 
-## Vue
+## React
 
-Composition API。
+函数组件优先。
 
-<script setup>。
+使用 Hooks 组织状态与副作用。
 
 组件职责单一。
 
-状态统一交给 Pinia。
+认证与权限状态优先使用 `AuthProvider + useAuthStore()`。
 
-禁止 Options API。
+页面内局部交互使用 `useState / useMemo / useCallback / useEffect`。
+
+菜单、权限、角色优先使用派生数据，不维护重复状态。
+
+路由守卫统一放在 `src/router/index.tsx`。
+
+按钮权限统一使用条件渲染或 `PermissionGate` 模式。
+
+禁止 class component。
 
 ---
 
@@ -42,9 +50,9 @@ Hooks：
 
 useXXX.ts
 
-Store：
+Provider / Store：
 
-xxx.store.ts
+`stores/*.tsx`
 
 ---
 

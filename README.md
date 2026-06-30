@@ -5,7 +5,9 @@ Enterprise AI Console 是一个面向企业 AI 场景的 Monorepo 初始化项�
 ## 已完成内容
 
 - `pnpm workspace` Monorepo 结构
-- `apps/admin` Vue3 + Vite + TypeScript + Pinia + Vue Router + UnoCSS
+- `apps/admin` React 19 + Vite + TypeScript + `react-router-dom` + UnoCSS
+- `apps/admin` 采用 `AuthProvider + useAuthStore()` 管理认证与 RBAC 状态
+- `apps/admin` 采用路由门禁与条件渲染实现页面级、菜单级、按钮级权限控制
 - `server` Hono 服务，提供 `GET /health` 与 `GET /version`
 - `packages/*` 基础公共包骨架
 - ESLint、Prettier、Husky、lint-staged、Commitlint
@@ -42,7 +44,7 @@ enterprise-ai-console
 ├── server/
 ├── CHANGELOG.md
 ├── commitlint.config.cjs
-├── eslint.config.js
+├── eslint.config.mjs
 ├── package.json
 ├── pnpm-workspace.yaml
 ├── prettier.config.cjs
@@ -86,9 +88,13 @@ pnpm commit
 
 - 登录页 `Login`
 - 仪表盘页 `Dashboard`
+- 用户管理页 `Users`
+- `403 Forbidden` 权限兜底页
 - `Header / Sidebar / Main` 布局
-- 基于 Vue Router 的页面跳转
-- 基于 Pinia 的简单应用状态
+- 基于 `react-router-dom` 的公开路由、受保护路由和权限路由
+- 基于 `AuthProvider + useAuthStore()` 的认证、会话恢复和权限派生
+- 基于 `filterMenus()` 的菜单过滤
+- 基于 `hasPermission()` 的按钮级条件渲染
 
 ### Server
 

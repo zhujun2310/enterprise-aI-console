@@ -1,14 +1,11 @@
-import { computed, ref } from 'vue';
-import { defineStore } from 'pinia';
+const appState = {
+  title: 'Enterprise AI Console',
+  subtitle: 'React 19 RBAC Console'
+};
 
-export const useAppStore = defineStore('app', () => {
-  const title = ref('Enterprise AI Console');
-  const subtitle = ref('Monorepo Bootstrap');
-  const fullTitle = computed(() => `${title.value} | ${subtitle.value}`);
-
+export function useAppStore() {
   return {
-    title,
-    subtitle,
-    fullTitle
+    ...appState,
+    fullTitle: `${appState.title} | ${appState.subtitle}`
   };
-});
+}

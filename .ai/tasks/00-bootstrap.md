@@ -63,7 +63,7 @@
 
 ---
 
-# 四、阶段 02：Admin（Vue3 企业后台）
+# 四、阶段 02：Admin（React 19 企业后台）
 
 ## 路径
 
@@ -73,11 +73,11 @@ apps/admin
 
 ## 技术栈
 
-- Vue3
+- React 19
 - TypeScript
 - Vite
-- Pinia
-- Vue Router
+- React Context + Hooks
+- React Router
 - UnoCSS
 
 ---

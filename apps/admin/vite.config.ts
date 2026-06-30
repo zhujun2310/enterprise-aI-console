@@ -1,13 +1,16 @@
 import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
+import react from '@vitejs/plugin-react';
 import UnoCSS from 'unocss/vite';
 
 export default defineConfig({
-  plugins: [vue(), UnoCSS()],
+  plugins: [react(), UnoCSS()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@enterprise-ai-console/auth': fileURLToPath(
+        new URL('../../packages/auth/src/index.ts', import.meta.url)
+      )
     }
   },
   server: {

@@ -10,6 +10,8 @@ export interface Role {
   permissions: Permission[];
 }
 
+export type RoleId = 'admin' | 'viewer';
+
 export interface User {
   id: string;
   username: string;
@@ -32,6 +34,18 @@ export interface LoginResult {
   user: User;
 }
 
+export interface CreateUserInput {
+  username: string;
+  avatar?: string;
+  roleIds: RoleId[];
+  password?: string;
+}
+
+export interface UpdateUserRolesInput {
+  userId: string;
+  roleIds: RoleId[];
+}
+
 interface UserRecord {
   user: User;
   password: string;
@@ -47,6 +61,8 @@ interface TokenPayload {
 const ACCESS_TOKEN_KEY = 'enterprise-ai-console.access-token';
 const REFRESH_TOKEN_KEY = 'enterprise-ai-console.refresh-token';
 const TOKEN_TTL = 1000 * 60 * 60 * 8;
+const DEFAULT_PASSWORD = 'changeme123';
+let userSequence = 3;
 
 export const permissions: Record<
   'dashboardView' | 'userCreate' | 'userEdit' | 'userDelete',
@@ -74,7 +90,7 @@ export const permissions: Record<
   }
 };
 
-export const roles: Record<'admin' | 'viewer', Role> = {
+export const roles: Record<RoleId, Role> = {
   admin: {
     id: 'admin',
     name: 'Administrator',
@@ -104,7 +120,7 @@ export const defaultMenus: Menu[] = [
   }
 ];
 
-const seedUsers: UserRecord[] = [
+const userRecords: UserRecord[] = [
   {
     user: {
       id: 'u_admin',
@@ -122,6 +138,26 @@ const seedUsers: UserRecord[] = [
     password: 'viewer123'
   }
 ];
+
+function clonePermission(permission: Permission): Permission {
+  return {
+    ...permission
+  };
+}
+
+function cloneRole(role: Role): Role {
+  return {
+    ...role,
+    permissions: role.permissions.map(clonePermission)
+  };
+}
+
+function cloneUser(user: User): User {
+  return {
+    ...user,
+    roles: user.roles.map(cloneRole)
+  };
+}
 
 function encodeBase64(value: string): string {
   if (typeof globalThis.btoa === 'function') {
@@ -180,12 +216,40 @@ function deduplicatePermissions(items: Permission[]): Permission[] {
   return Array.from(permissionMap.values());
 }
 
+function normalizeRoleIds(roleIds: RoleId[]): RoleId[] {
+  return Array.from(new Set(roleIds));
+}
+
+function ensureRoles(roleIds: RoleId[]): Role[] {
+  const normalizedRoleIds = normalizeRoleIds(roleIds);
+
+  if (normalizedRoleIds.length === 0) {
+    throw new Error('At least one role must be assigned.');
+  }
+
+  return normalizedRoleIds.map((roleId) => {
+    const role = roles[roleId];
+
+    if (!role) {
+      throw new Error(`Unknown role: ${roleId}`);
+    }
+
+    return cloneRole(role);
+  });
+}
+
 function findUserRecordByUsername(username: string): UserRecord | null {
-  return seedUsers.find((record) => record.user.username === username) ?? null;
+  return userRecords.find((record) => record.user.username === username) ?? null;
 }
 
 function findUserById(userId: string): User | null {
-  return seedUsers.find((record) => record.user.id === userId)?.user ?? null;
+  const user = userRecords.find((record) => record.user.id === userId)?.user ?? null;
+
+  return user ? cloneUser(user) : null;
+}
+
+function findUserRecordById(userId: string): UserRecord | null {
+  return userRecords.find((record) => record.user.id === userId) ?? null;
 }
 
 function getStorage(): Storage | null {
@@ -197,7 +261,65 @@ function getStorage(): Storage | null {
 }
 
 export function getSeedUsers(): User[] {
-  return seedUsers.map((record) => record.user);
+  return userRecords.map((record) => cloneUser(record.user));
+}
+
+export function getRoleCatalog(): Role[] {
+  return Object.values(roles).map(cloneRole);
+}
+
+export function listUsers(): User[] {
+  return userRecords.map((record) => cloneUser(record.user));
+}
+
+export function createUserAccount(input: CreateUserInput): User {
+  const username = input.username.trim();
+
+  if (!username) {
+    throw new Error('Username is required.');
+  }
+
+  if (findUserRecordByUsername(username)) {
+    throw new Error('Username already exists.');
+  }
+
+  const newUser: User = {
+    id: `u_${String(userSequence).padStart(4, '0')}`,
+    username,
+    avatar: input.avatar,
+    roles: ensureRoles(input.roleIds)
+  };
+
+  userSequence += 1;
+
+  userRecords.push({
+    user: newUser,
+    password: input.password ?? DEFAULT_PASSWORD
+  });
+
+  return cloneUser(newUser);
+}
+
+export function updateUserRoles(input: UpdateUserRolesInput): User {
+  const record = findUserRecordById(input.userId);
+
+  if (!record) {
+    throw new Error('User not found.');
+  }
+
+  record.user.roles = ensureRoles(input.roleIds);
+
+  return cloneUser(record.user);
+}
+
+export function deleteUserAccount(userId: string): void {
+  const index = userRecords.findIndex((record) => record.user.id === userId);
+
+  if (index === -1) {
+    throw new Error('User not found.');
+  }
+
+  userRecords.splice(index, 1);
 }
 
 export function getPermissionsByUser(user: User | null): Permission[] {
@@ -253,7 +375,7 @@ export function login(username: string, password: string): LoginResult {
   return {
     token,
     refreshToken,
-    user: record.user
+    user: cloneUser(record.user)
   };
 }
 

@@ -310,8 +310,9 @@ AI 用途：
 
 支持：
 
-- 动态路由
-- 按钮级权限
+- 路由门禁组件
+- 按钮级权限门禁
+- 菜单按权限过滤
 
 ---
 
@@ -334,18 +335,24 @@ ai-sdk → UI
 
 # 六、状态管理规范
 
-## Pinia 使用范围
+## React 状态使用范围
 
-仅 UI 状态：
+仅前端壳层状态：
 
 - sidebar
 - theme
 - layout
 - 登录状态
 
+推荐形态：
+
+- `AuthProvider` 承载认证上下文
+- `useAuthStore()` 作为统一读取入口
+- `useMemo()` 派生角色、权限、菜单
+
 ## 业务状态
 
-禁止直接放 Pinia：
+禁止直接堆叠在页面局部状态：
 
 - AI 会话
 - 拓扑数据
@@ -355,7 +362,12 @@ ai-sdk → UI
 
 - SDK
 - service layer
-- composables
+- hooks / context
+
+禁止：
+
+- 在多个页面重复维护用户、权限、菜单副本
+- 在组件树深处绕过统一 auth 上下文直接拼装权限状态
 
 ---
 
@@ -386,18 +398,20 @@ ai-sdk → UI
 - strict 模式
 - 禁止 any
 
-## Vue
+## React
 
-- Composition API
-- script setup
+- 函数组件
+- hooks 优先
 - 单一职责
+- 路由守卫集中定义
+- 权限判断统一走 `hasPermission()`
 
 ## 命名
 
 - 组件：PascalCase
 - 工具：camelCase
 - hooks：useXXX
-- store：xxx.store.ts
+- provider / store：`stores/*.tsx`
 
 ---
 

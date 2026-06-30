@@ -31,8 +31,8 @@
 - 角色（Role）
 - 权限（Permission）
 - 菜单（Menu）
-- 路由权限控制（Router Guard）
-- 按钮级权限控制（Directive）
+- 路由权限控制（`RequireAuth` / `PermissionRoute`）
+- 按钮级权限控制（条件渲染 Permission Gate）
 - API 权限控制（Server Middleware）
 
 形成完整闭环：
@@ -62,9 +62,9 @@
 
 控制页面访问权限。
 
-### UI 层（Directive）
+### UI 层（Permission Gate）
 
-控制按钮 / 元素显示。
+控制按钮 / 元素是否渲染。
 
 ### API 层（Server）
 
@@ -145,11 +145,18 @@ export interface Permission {
 
 ---
 
-# 五、阶段 02：Auth Store（Pinia）
+# 五、阶段 02：Auth State（AuthProvider + useAuthStore）
 
 ## 路径
 
-`apps/admin/src/store/auth`
+`apps/admin/src/stores/auth.tsx`
+
+## 形态约束
+
+- 使用 `AuthProvider` 提供全局认证上下文
+- 使用 `useAuthStore()` 暴露统一读取入口
+- 登录态恢复通过 `hydrate()` 完成
+- 权限、角色、菜单通过派生数据计算，不手工维护重复状态
 
 ## 必须实现状态
 
@@ -162,7 +169,8 @@ export interface Permission {
 
 - `login()`
 - `logout()`
-- `setUser()`
+- `hydrate()`
+- `refreshCurrentUser()`
 - `hasPermission(code)`
 
 ## 验收标准
@@ -172,11 +180,11 @@ export interface Permission {
 
 ---
 
-# 六、阶段 03：Router 权限系统
+# 六、阶段 03：Router 权限系统（react-router-dom）
 
 ## 路径
 
-`apps/admin/src/router`
+`apps/admin/src/router/index.tsx`
 
 ## 必须实现
 
@@ -187,17 +195,21 @@ export interface Permission {
 
 ### 路由守卫
 
-- 未登录 → 跳 `login`
-- 无权限 → 拦截访问
+- 未登录 → 通过 `RequireAuth` 跳 `login`
+- 已登录访问登录页 → 通过 `PublicOnlyRoute` 回跳默认首页
+- 无权限 → 通过 `PermissionRoute` 跳 `403`
 
-### 动态路由
+### 路由组织
 
-根据权限动态生成菜单路由。
+- 使用 `BrowserRouter + Routes + Route`
+- 受保护页面挂在统一布局壳层下
+- 菜单按权限过滤，路由按权限门禁，不要求运行时注入动态路由
 
 ## 验收标准
 
 - 未登录无法访问 `dashboard`
-- 登录后自动注入路由
+- 登录后可进入受保护路由
+- 无权限访问受保护页面时进入 `403`
 
 ---
 
@@ -229,20 +241,31 @@ export interface Menu {
 
 ---
 
-# 八、阶段 05：按钮级权限（Directive）
+# 八、阶段 05：按钮级权限（Conditional Render）
 
-## Vue Directive
+## React 权限门禁约定
 
 ## 实现
 
-```vue
-v-permission="'user:create'"
+```tsx
+{
+  hasPermission('user:create') ? <button>Create User</button> : null;
+}
+```
+
+也允许抽象为：
+
+```tsx
+<PermissionGate code="user:create">
+  <button>Create User</button>
+</PermissionGate>
 ```
 
 ## 功能要求
 
-- 无权限隐藏按钮
+- 无权限不渲染按钮
 - 支持多个权限组合判断
+- 权限判断统一复用 `hasPermission()`
 
 ## 验收标准
 
@@ -328,10 +351,10 @@ v-permission="'user:create'"
 
 - Login
 - Token
-- Store
+- AuthProvider / useAuthStore
 - Router
 - Menu
-- Directive
+- Permission Gate
 - API
 
 形成完整 RBAC 闭环系统。

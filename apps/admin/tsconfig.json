@@ -4,9 +4,17 @@
     "composite": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "baseUrl": ".",
+    "jsx": "react-jsx",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@enterprise-ai-console/auth": ["../../packages/auth/src/index.ts"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "uno.config.ts", "vite.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "../../packages/auth/src/**/*.ts",
+    "uno.config.ts",
+    "vite.config.ts"
+  ]
 }

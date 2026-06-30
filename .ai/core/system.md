@@ -6,7 +6,7 @@
 
 - 企业级前端架构
 - AI Native Application
-- Vue3
+- React 19
 - TypeScript
 - Node.js
 - Hono

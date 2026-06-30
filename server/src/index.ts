@@ -1,13 +1,29 @@
 import { serve } from '@hono/node-server';
-import type { User } from '../../packages/auth/dist/index.js';
+import type { RoleId, User } from '../../packages/auth/dist/index.js';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { requireAuth, requirePermission, type AuthVariables } from './auth/middleware';
-import { getUserInfoByToken, loginWithPassword } from './auth/service';
+import {
+  createManagedUser,
+  deleteManagedUser,
+  getUserInfoByToken,
+  getUserManagementPayload,
+  loginWithPassword,
+  updateManagedUserRoles
+} from './auth/service';
 
 interface LoginBody {
   username: string;
   password: string;
+}
+
+interface CreateUserBody {
+  username: string;
+  roleIds?: RoleId[];
+}
+
+interface UpdateUserRolesBody {
+  roleIds?: RoleId[];
 }
 
 const app = new Hono<{ Variables: AuthVariables }>();
@@ -19,7 +35,7 @@ app.use(
   cors({
     origin: '*',
     allowHeaders: ['Content-Type', 'Authorization'],
-    allowMethods: ['GET', 'POST', 'OPTIONS']
+    allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS']
   })
 );
 
@@ -100,13 +116,93 @@ app.get('/dashboard/summary', requireAuth, requirePermission('dashboard:view'), 
 });
 
 app.post('/users', requireAuth, requirePermission('user:create'), async (c) => {
-  const body = (await c.req.json()) as { username?: string };
+  const body = (await c.req.json()) as Partial<CreateUserBody>;
   const actor: User = c.get('user');
+  const username = body.username?.trim() ?? '';
+  const roleIds = body.roleIds ?? ['viewer'];
 
-  return c.json({
-    success: true,
-    message: `User ${body.username ?? 'new-user'} created by ${actor.username}.`
-  });
+  if (!username) {
+    return c.json(
+      {
+        message: 'Username is required.'
+      },
+      400
+    );
+  }
+
+  try {
+    const createdUser = createManagedUser(username, roleIds);
+
+    return c.json({
+      success: true,
+      message: `User ${createdUser.username} created by ${actor.username}.`
+    });
+  } catch (error: unknown) {
+    return c.json(
+      {
+        message: error instanceof Error ? error.message : 'Failed to create user.'
+      },
+      400
+    );
+  }
+});
+
+app.get('/users', requireAuth, requirePermission('user:create'), (c) => {
+  return c.json(getUserManagementPayload());
+});
+
+app.patch('/users/:userId/roles', requireAuth, requirePermission('user:edit'), async (c) => {
+  const actor: User = c.get('user');
+  const userId = c.req.param('userId');
+  const body = (await c.req.json()) as Partial<UpdateUserRolesBody>;
+  const roleIds = body.roleIds ?? [];
+
+  try {
+    const updatedUser = updateManagedUserRoles(userId, roleIds);
+
+    return c.json({
+      success: true,
+      message: `Roles for ${updatedUser.username} updated by ${actor.username}.`,
+      user: updatedUser
+    });
+  } catch (error: unknown) {
+    return c.json(
+      {
+        message: error instanceof Error ? error.message : 'Failed to update roles.'
+      },
+      400
+    );
+  }
+});
+
+app.delete('/users/:userId', requireAuth, requirePermission('user:delete'), (c) => {
+  const actor: User = c.get('user');
+  const userId = c.req.param('userId');
+
+  if (actor.id === userId) {
+    return c.json(
+      {
+        message: 'You cannot delete the current signed-in user.'
+      },
+      400
+    );
+  }
+
+  try {
+    deleteManagedUser(userId);
+
+    return c.json({
+      success: true,
+      message: `User ${userId} deleted by ${actor.username}.`
+    });
+  } catch (error: unknown) {
+    return c.json(
+      {
+        message: error instanceof Error ? error.message : 'Failed to delete user.'
+      },
+      400
+    );
+  }
 });
 
 serve(

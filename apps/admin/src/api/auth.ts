@@ -1,4 +1,11 @@
-import type { LoginResult, Menu, Permission, User } from '../../../../packages/auth/dist/index.js';
+import type {
+  LoginResult,
+  Menu,
+  Permission,
+  Role,
+  RoleId,
+  User
+} from '@enterprise-ai-console/auth';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
 
@@ -21,6 +28,17 @@ export interface DashboardSummaryResponse {
 export interface CreateUserResponse {
   success: boolean;
   message: string;
+}
+
+export interface UserManagementResponse {
+  users: User[];
+  roles: Role[];
+}
+
+export interface UpdateUserRolesResponse {
+  success: boolean;
+  message: string;
+  user: User;
 }
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -76,14 +94,55 @@ export async function getDashboardSummaryRequest(token: string): Promise<Dashboa
   });
 }
 
-export async function createUserRequest(token: string): Promise<CreateUserResponse> {
+export async function createUserRequest(
+  token: string,
+  username: string,
+  roleIds: RoleId[]
+): Promise<CreateUserResponse> {
   return requestJson<CreateUserResponse>('/users', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`
     },
     body: JSON.stringify({
-      username: `user-${Date.now()}`
+      username,
+      roleIds
     })
+  });
+}
+
+export async function getUsersRequest(token: string): Promise<UserManagementResponse> {
+  return requestJson<UserManagementResponse>('/users', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+}
+
+export async function updateUserRolesRequest(
+  token: string,
+  userId: string,
+  roleIds: RoleId[]
+): Promise<UpdateUserRolesResponse> {
+  return requestJson<UpdateUserRolesResponse>(`/users/${userId}/roles`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      roleIds
+    })
+  });
+}
+
+export async function deleteUserRequest(
+  token: string,
+  userId: string
+): Promise<CreateUserResponse> {
+  return requestJson<CreateUserResponse>(`/users/${userId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
   });
 }
