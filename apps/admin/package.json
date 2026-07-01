@@ -11,6 +11,7 @@
   "dependencies": {
     "@enterprise-ai-console/auth": "workspace:*",
     "@unocss/reset": "^66.4.2",
+    "echarts": "^5.6.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.0.0"

@@ -112,6 +112,48 @@ export const defaultMenus: Menu[] = [
     permissionCode: permissions.dashboardView.id
   },
   {
+    id: 'devices',
+    name: 'Devices',
+    path: '/devices',
+    icon: 'i-lucide-cpu',
+    permissionCode: permissions.dashboardView.id
+  },
+  {
+    id: 'ai-copilot',
+    name: 'AI Copilot',
+    path: '/ai-copilot',
+    icon: 'i-lucide-sparkles',
+    permissionCode: permissions.dashboardView.id
+  },
+  {
+    id: 'agents',
+    name: 'Agents',
+    path: '/agents',
+    icon: 'i-lucide-bot',
+    permissionCode: permissions.dashboardView.id
+  },
+  {
+    id: 'workflows',
+    name: 'Workflows',
+    path: '/workflows',
+    icon: 'i-lucide-git-branch',
+    permissionCode: permissions.dashboardView.id
+  },
+  {
+    id: 'screens',
+    name: 'Screens',
+    path: '/screens',
+    icon: 'i-lucide-monitor',
+    permissionCode: permissions.dashboardView.id
+  },
+  {
+    id: 'system',
+    name: 'System',
+    path: '/system',
+    icon: 'i-lucide-settings',
+    permissionCode: permissions.dashboardView.id
+  },
+  {
     id: 'users',
     name: 'Users',
     path: '/users',

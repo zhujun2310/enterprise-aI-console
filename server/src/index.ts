@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server';
 import type { RoleId, User } from '../../packages/auth/dist/index.js';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { streamSSE } from 'hono/streaming';
 import { requireAuth, requirePermission, type AuthVariables } from './auth/middleware';
 import {
   createManagedUser,
@@ -11,6 +12,13 @@ import {
   loginWithPassword,
   updateManagedUserRoles
 } from './auth/service';
+import {
+  acknowledgeAlarm,
+  getDailySummary,
+  getDashboardSnapshot,
+  listDashboardAlarms,
+  maybeCreateAlarm
+} from './dashboard';
 
 interface LoginBody {
   username: string;
@@ -112,6 +120,123 @@ app.get('/dashboard/summary', requireAuth, requirePermission('dashboard:view'), 
     message: `Dashboard access granted for ${user.username}.`,
     permissions: user.roles.flatMap((role) => role.permissions.map((permission) => permission.id)),
     roleIds: user.roles.map((role) => role.id)
+  });
+});
+
+app.get('/dashboard/snapshot', requireAuth, requirePermission('dashboard:view'), (c) => {
+  return c.json(getDashboardSnapshot());
+});
+
+app.get('/dashboard/alarms', requireAuth, requirePermission('dashboard:view'), (c) => {
+  return c.json({
+    alarms: listDashboardAlarms()
+  });
+});
+
+app.post(
+  '/dashboard/alarms/:alarmId/ack',
+  requireAuth,
+  requirePermission('dashboard:view'),
+  (c) => {
+    const alarmId = c.req.param('alarmId');
+    const alarm = acknowledgeAlarm(alarmId);
+
+    if (!alarm) {
+      return c.json(
+        {
+          message: 'Alarm not found.'
+        },
+        404
+      );
+    }
+
+    return c.json({
+      alarm
+    });
+  }
+);
+
+app.get('/dashboard/ai/daily-summary', requireAuth, requirePermission('dashboard:view'), (c) => {
+  return c.json({
+    summary: getDailySummary()
+  });
+});
+
+app.get('/sse/dashboard', requireAuth, requirePermission('dashboard:view'), async (c) => {
+  let id = 0;
+
+  return streamSSE(c, async (stream) => {
+    const initial = getDashboardSnapshot();
+
+    await stream.writeSSE({
+      data: JSON.stringify({
+        type: 'kpi:update',
+        payload: { kpis: initial.kpis, updatedAt: initial.updatedAt }
+      }),
+      event: 'dashboard',
+      id: String(id++)
+    });
+    await stream.writeSSE({
+      data: JSON.stringify({ type: 'device:status', payload: initial.deviceStatus }),
+      event: 'dashboard',
+      id: String(id++)
+    });
+    for (const point of initial.trend.slice(-5)) {
+      await stream.writeSSE({
+        data: JSON.stringify({ type: 'trend:point', payload: point }),
+        event: 'dashboard',
+        id: String(id++)
+      });
+    }
+    for (const alarm of initial.alarms.slice(0, 3)) {
+      await stream.writeSSE({
+        data: JSON.stringify({ type: 'alarm:update', payload: alarm }),
+        event: 'dashboard',
+        id: String(id++)
+      });
+    }
+
+    const timer = setInterval(() => {
+      void (async () => {
+        const snapshot = getDashboardSnapshot();
+        await stream.writeSSE({
+          data: JSON.stringify({
+            type: 'kpi:update',
+            payload: { kpis: snapshot.kpis, updatedAt: snapshot.updatedAt }
+          }),
+          event: 'dashboard',
+          id: String(id++)
+        });
+
+        await stream.writeSSE({
+          data: JSON.stringify({ type: 'device:status', payload: snapshot.deviceStatus }),
+          event: 'dashboard',
+          id: String(id++)
+        });
+
+        const point = snapshot.trend.at(-1);
+        if (point) {
+          await stream.writeSSE({
+            data: JSON.stringify({ type: 'trend:point', payload: point }),
+            event: 'dashboard',
+            id: String(id++)
+          });
+        }
+
+        const alarm = maybeCreateAlarm();
+        if (alarm) {
+          await stream.writeSSE({
+            data: JSON.stringify({ type: 'alarm:new', payload: alarm }),
+            event: 'dashboard',
+            id: String(id++)
+          });
+        }
+      })();
+    }, 5000);
+
+    stream.onAbort(() => {
+      clearInterval(timer);
+    });
   });
 });
 

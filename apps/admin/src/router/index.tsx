@@ -2,10 +2,16 @@ import type { ReactNode } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import AdminLayout from '../layouts/AdminLayout';
 import { useAuthStore } from '../stores/auth';
+import Agents from '../views/Agents';
+import AiCopilot from '../views/AiCopilot';
 import Dashboard from '../views/Dashboard';
+import Devices from '../views/Devices';
 import Forbidden from '../views/Forbidden';
 import Login from '../views/Login';
+import Screens from '../views/Screens';
+import System from '../views/System';
 import Users from '../views/Users';
+import Workflows from '../views/Workflows';
 
 function LoadingScreen() {
   return (
@@ -111,6 +117,54 @@ export default function AppRouter() {
               element={
                 <PermissionRoute permissionCode="user:create">
                   <Users />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="/devices"
+              element={
+                <PermissionRoute permissionCode="dashboard:view">
+                  <Devices />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="/ai-copilot"
+              element={
+                <PermissionRoute permissionCode="dashboard:view">
+                  <AiCopilot />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="/agents"
+              element={
+                <PermissionRoute permissionCode="dashboard:view">
+                  <Agents />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="/workflows"
+              element={
+                <PermissionRoute permissionCode="dashboard:view">
+                  <Workflows />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="/screens"
+              element={
+                <PermissionRoute permissionCode="dashboard:view">
+                  <Screens />
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path="/system"
+              element={
+                <PermissionRoute permissionCode="dashboard:view">
+                  <System />
                 </PermissionRoute>
               }
             />

@@ -21,7 +21,7 @@ function extractToken(authorizationHeader: string | undefined): string | null {
 
 export const requireAuth: MiddlewareHandler<{ Variables: AuthVariables }> = async (c, next) => {
   const authorizationHeader = c.req.header('Authorization');
-  const token = extractToken(authorizationHeader);
+  const token = extractToken(authorizationHeader) ?? c.req.query('token') ?? null;
 
   if (!token) {
     return c.json(
