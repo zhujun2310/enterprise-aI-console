@@ -146,41 +146,73 @@
 
 ## Sprint 2：Dashboard
 
-### Task 2.1 Dashboard
+### Task 2.1 Dashboard 页面框架
 
-- [ ] 概览（Overview）
-- [ ] 关键指标（KPI）
-- [ ] 欢迎（Welcome）
+- [x] Dashboard 页面框架（Header / Sidebar / Content）
+- [x] 响应式布局（栅格断点）
+- [x] Widget 容器（布局区域 + Widget Registry）
+- [ ] 基础 Widget：欢迎信息（用户信息 / 当前时间 / 最近登录）
+- [ ] 基础 Widget：系统公告（公告 / 更新日志 / 系统通知）
+- [ ] 基础 Widget：最近操作（最近访问 / 最近编辑 / 最近 AI 对话 / 最近 Workflow）
 
-### Task 2.2 Charts
+### Task 2.2 KPI 卡片
 
-- [ ] 折线图（Line）
-- [ ] 柱状图（Bar）
-- [ ] 饼图（Pie）
+- [x] KPI Cards（在线设备 / 今日告警 / AI 调用次数 / 今日工单 / 在线用户 / 系统运行时间）
+- [x] 数字动画（CountUp）
+- [x] 环比 / 同比增长展示
+- [x] 点击跳转（路由导航）
 
-### Task 2.3 Statistics
+### Task 2.3 图表组件与趋势
 
-- [ ] 趋势（Trend）
-- [ ] 排名（Ranking）
-- [ ] 汇总（Summary）
+- [x] 统一图表组件封装（Line / Bar / Pie）
+- [x] Realtime Trend：能耗 / AI 调用 / 在线设备 / 告警趋势
+- [x] 图表状态：Loading / Empty / Error
+- [ ] 图表按需加载（Lazy import）
 
-### Task 2.4 RealTime
+### Task 2.4 实时数据
 
-- [ ] WebSocket（WebSocket）
-- [ ] SSE（SSE）
+- [x] SSE（订阅 / 断线重连）
+- [ ] WebSocket（订阅 / 心跳 / 断线重连）
+- [x] Dashboard 数据实时更新：KPI / Chart / Alarm / Device
 
-### Task 2.5 Widget
+### Task 2.5 AI Assistant Widget
 
-- [ ] 卡片（Card）
-- [ ] Widget（Widget）
-- [ ] 栅格（Grid）
+- [x] 首页固定 AI 助手面板（Q&A）
+- [x] 快速搜索（页面 / 功能）
+- [x] 页面导航（打开模块指令）
+- [x] 系统帮助与快捷命令（占位）
 
-### Task 2.6 工作台增强
+### Task 2.6 AI 今日摘要
 
-- [ ] 通知（Notification）
-- [ ] 待办（Todo）
-- [ ] 快捷入口（Shortcut）
-- [ ] 个性化布局（Personalized Layout）
+- [x] AI 自动总结今日数据（新增设备 / 新增告警 / AI 调用 / Workflow 成功率）
+- [x] 摘要卡片展示与刷新
+- [ ] AI 推荐（根据行为推荐：告警 / 新设备 / Workflow）
+- [ ] AI Prompt 收藏（常用 Prompt 列表）
+
+### Task 2.7 告警中心
+
+- [x] 最新告警列表（等级 / 来源 / 时间）
+- [x] 查看详情（跳转或抽屉）
+- [x] 一键确认
+
+### Task 2.8 在线设备统计
+
+- [x] 在线 / 离线 / 故障 / 维修中统计
+- [x] 环形图 / 柱状图展示
+- [ ] 点击跳转（设备中心）
+
+### Task 2.9 快捷入口
+
+- [ ] 快捷入口：设备中心 / AI Copilot / AI Agent / Workflow / 数字大屏 / 拓扑编辑器 / 系统管理
+- [x] 收藏 / 最近访问
+- [ ] 自定义排序
+
+### Task 2.10 Widget 配置中心
+
+- [ ] Widget 拖拽排序
+- [x] 显示 / 隐藏
+- [x] 刷新时间配置
+- [ ] 数据源配置（占位）
 
 ---
 
@@ -192,33 +224,33 @@
 
 ### Task 3.1 设备列表
 
-- [ ] 表格（Table）
-- [ ] 搜索（Search）
-- [ ] 筛选（Filter）
+- [x] 表格（Table）
+- [x] 搜索（Search）
+- [x] 筛选（Filter）
 
 ### Task 3.2 设备详情
 
-- [ ] 基础信息（Basic）
-- [ ] 属性（Property）
-- [ ] 状态（Status）
+- [x] 基础信息（Basic）
+- [x] 属性（Property）
+- [x] 状态（Status）
 
 ### Task 3.3 实时监控
 
-- [ ] 监控（Monitor）
-- [ ] 图表（Chart）
-- [ ] 历史（History）
+- [x] 监控（Monitor）
+- [x] 图表（Chart）
+- [x] 历史（History）
 
 ### Task 3.4 告警中心
 
-- [ ] 告警列表（Alarm List）
-- [ ] 告警详情（Alarm Detail）
-- [ ] 告警等级（Alarm Level）
+- [x] 告警列表（Alarm List）
+- [x] 告警详情（Alarm Detail）
+- [x] 告警等级（Alarm Level）
 
 ### Task 3.5 设备运维
 
-- [ ] 分组（Group）
-- [ ] 操作日志（Operation Log）
-- [ ] 批量操作（Batch Action）
+- [x] 分组（Group）
+- [x] 操作日志（Operation Log）
+- [x] 批量操作（Batch Action）
 
 ---
 

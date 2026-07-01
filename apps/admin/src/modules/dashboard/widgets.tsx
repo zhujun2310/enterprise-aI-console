@@ -108,7 +108,7 @@ export function KpiWidget({
   const state = kpis.length === 0 ? 'empty' : 'ready';
 
   return (
-    <WidgetContainer title="KPI Cards" state={state} onRefresh={requestRefreshAll}>
+    <WidgetContainer title="KPI 卡片" state={state} onRefresh={requestRefreshAll}>
       <div className="grid gap-3 md:grid-cols-3">
         {kpis.map((metric) => (
           <KpiCard key={metric.id} metric={metric} navigateTo={navigateTo} />
@@ -142,8 +142,8 @@ function KpiCard({
         {formatNumber(Math.round(animatedValue))} {metric.unit ?? ''}
       </p>
       <div className="mt-3 space-y-1">
-        <MetricDelta label="MoM" value={metric.deltaMoM} />
-        <MetricDelta label="YoY" value={metric.deltaYoY} />
+        <MetricDelta label="环比" value={metric.deltaMoM} />
+        <MetricDelta label="同比" value={metric.deltaYoY} />
       </div>
     </button>
   );
@@ -167,18 +167,18 @@ export function BusinessOverviewWidget({
   }, []);
 
   return (
-    <WidgetContainer title="Business Overview" state="ready" onRefresh={requestRefreshAll}>
+    <WidgetContainer title="业务概览" state="ready" onRefresh={requestRefreshAll}>
       <dl className="space-y-3 text-sm text-slate-600">
         <div className="flex justify-between gap-3">
-          <dt>Local Time</dt>
+          <dt>本地时间</dt>
           <dd className="font-medium text-slate-900">{clock.toLocaleString()}</dd>
         </div>
         <div className="flex justify-between gap-3">
-          <dt>Session Start</dt>
+          <dt>会话开始</dt>
           <dd className="font-medium text-slate-900">{now.toLocaleTimeString()}</dd>
         </div>
         <div className="flex justify-between gap-3">
-          <dt>Last Server Update</dt>
+          <dt>服务端更新时间</dt>
           <dd className="font-medium text-slate-900">{updatedAt ?? '-'}</dd>
         </div>
       </dl>
@@ -188,21 +188,15 @@ export function BusinessOverviewWidget({
 
 export function DeviceStatusWidget({ snapshot }: { snapshot: DeviceStatusSnapshot | null }) {
   const [mode, setMode] = useState<'pie' | 'bar'>('pie');
-
-  if (!snapshot) {
-    return (
-      <WidgetContainer title="Device Status" state="empty">
-        <div />
-      </WidgetContainer>
-    );
-  }
-
-  const items = [
-    { name: 'Online', value: snapshot.online },
-    { name: 'Offline', value: snapshot.offline },
-    { name: 'Fault', value: snapshot.fault },
-    { name: 'Maintenance', value: snapshot.maintenance }
-  ];
+  const items = useMemo(
+    () => [
+      { name: '在线', value: snapshot?.online ?? 0 },
+      { name: '离线', value: snapshot?.offline ?? 0 },
+      { name: '故障', value: snapshot?.fault ?? 0 },
+      { name: '维修中', value: snapshot?.maintenance ?? 0 }
+    ],
+    [snapshot]
+  );
 
   const option = useMemo<EChartsOption>(() => {
     if (mode === 'pie') {
@@ -233,9 +227,17 @@ export function DeviceStatusWidget({ snapshot }: { snapshot: DeviceStatusSnapsho
     };
   }, [items, mode]);
 
+  if (!snapshot) {
+    return (
+      <WidgetContainer title="设备状态" state="empty">
+        <div />
+      </WidgetContainer>
+    );
+  }
+
   return (
     <WidgetContainer
-      title="Device Status"
+      title="设备状态"
       state="ready"
       extra={
         <div className="flex items-center gap-2">
@@ -249,7 +251,7 @@ export function DeviceStatusWidget({ snapshot }: { snapshot: DeviceStatusSnapsho
             ].join(' ')}
             onClick={() => setMode('pie')}
           >
-            Pie
+            饼图
           </button>
           <button
             type="button"
@@ -261,14 +263,14 @@ export function DeviceStatusWidget({ snapshot }: { snapshot: DeviceStatusSnapsho
             ].join(' ')}
             onClick={() => setMode('bar')}
           >
-            Bar
+            柱状图
           </button>
         </div>
       }
     >
       <EChart option={option} height={260} />
       <p className="mt-3 text-xs text-slate-500">
-        Updated: {new Date(snapshot.updatedAt).toLocaleTimeString()}
+        更新于：{new Date(snapshot.updatedAt).toLocaleTimeString()}
       </p>
     </WidgetContainer>
   );
@@ -306,7 +308,7 @@ export function RealtimeTrendWidget({ points }: { points: TrendPoint[] }) {
 
   return (
     <WidgetContainer
-      title="Realtime Trend"
+      title="实时趋势"
       state={state}
       extra={
         <select
@@ -324,10 +326,10 @@ export function RealtimeTrendWidget({ points }: { points: TrendPoint[] }) {
             }
           }}
         >
-          <option value="energy">Energy</option>
-          <option value="aiCalls">AI Calls</option>
-          <option value="onlineDevices">Online Devices</option>
-          <option value="alarms">Alarms</option>
+          <option value="energy">能耗</option>
+          <option value="aiCalls">AI 调用</option>
+          <option value="onlineDevices">在线设备</option>
+          <option value="alarms">告警</option>
         </select>
       }
     >
@@ -349,14 +351,14 @@ function AlarmDetailsModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <button
         type="button"
-        aria-label="Close alarm details"
+        aria-label="关闭告警详情"
         className="absolute inset-0 bg-slate-950/40"
         onClick={onClose}
       />
       <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Alarm</p>
+            <p className="text-sm uppercase tracking-[0.25em] text-slate-400">告警</p>
             <h3 className="mt-2 text-xl font-semibold text-slate-900">{alarm.title}</h3>
           </div>
           <button
@@ -364,7 +366,7 @@ function AlarmDetailsModal({
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
             onClick={onClose}
           >
-            Close
+            关闭
           </button>
         </div>
 
@@ -372,22 +374,24 @@ function AlarmDetailsModal({
           <p>{alarm.description}</p>
           <dl className="grid gap-2 md:grid-cols-2">
             <div className="flex justify-between gap-3">
-              <dt className="text-slate-500">Level</dt>
+              <dt className="text-slate-500">等级</dt>
               <dd className="font-medium text-slate-900">{alarm.level}</dd>
             </div>
             <div className="flex justify-between gap-3">
-              <dt className="text-slate-500">Source</dt>
+              <dt className="text-slate-500">来源</dt>
               <dd className="font-medium text-slate-900">{alarm.source}</dd>
             </div>
             <div className="flex justify-between gap-3">
-              <dt className="text-slate-500">Occurred</dt>
+              <dt className="text-slate-500">发生时间</dt>
               <dd className="font-medium text-slate-900">
                 {new Date(alarm.occurredAt).toLocaleString()}
               </dd>
             </div>
             <div className="flex justify-between gap-3">
-              <dt className="text-slate-500">Status</dt>
-              <dd className="font-medium text-slate-900">{alarm.acknowledged ? 'Acked' : 'New'}</dd>
+              <dt className="text-slate-500">状态</dt>
+              <dd className="font-medium text-slate-900">
+                {alarm.acknowledged ? '已确认' : '新告警'}
+              </dd>
             </div>
           </dl>
         </div>
@@ -399,7 +403,7 @@ function AlarmDetailsModal({
               className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-cyan-400"
               onClick={onAcknowledge}
             >
-              Acknowledge
+              确认
             </button>
           ) : null}
         </div>
@@ -419,7 +423,7 @@ export function AlarmCenterWidget({
   const state = alarms.length === 0 ? 'empty' : 'ready';
 
   return (
-    <WidgetContainer title="Alarm Center" state={state}>
+    <WidgetContainer title="告警中心" state={state}>
       <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
         {alarms.map((alarm) => (
           <div
@@ -453,7 +457,7 @@ export function AlarmCenterWidget({
             <div className="flex flex-col items-end gap-2">
               {alarm.acknowledged ? (
                 <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                  Acked
+                  已确认
                 </span>
               ) : (
                 <button
@@ -463,7 +467,7 @@ export function AlarmCenterWidget({
                     void acknowledgeAlarm(alarm.id);
                   }}
                 >
-                  Ack
+                  确认
                 </button>
               )}
             </div>
@@ -493,8 +497,8 @@ interface QuickEntry {
 const QUICK_ENTRIES: QuickEntry[] = [
   { id: 'devices', title: '设备中心', path: '/devices' },
   { id: 'ai-copilot', title: 'AI Copilot', path: '/ai-copilot' },
-  { id: 'agents', title: 'AI Agent', path: '/agents' },
-  { id: 'workflows', title: 'Workflow', path: '/workflows' },
+  { id: 'agents', title: 'AI 智能体', path: '/agents' },
+  { id: 'workflows', title: '工作流', path: '/workflows' },
   { id: 'screens', title: '数字大屏', path: '/screens' },
   { id: 'system', title: '系统管理', path: '/system' }
 ];
@@ -552,7 +556,7 @@ export function QuickEntryWidget({ navigateTo }: { navigateTo: (path: string) =>
   };
 
   return (
-    <WidgetContainer title="Quick Entry" state="ready">
+    <WidgetContainer title="快捷入口" state="ready">
       <div className="grid gap-2">
         {ordered.map((entry) => (
           <div
@@ -570,7 +574,7 @@ export function QuickEntryWidget({ navigateTo }: { navigateTo: (path: string) =>
               {entry.title}
               {prefs.recent.includes(entry.id) ? (
                 <span className="ml-2 rounded-full bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-800">
-                  Recent
+                  最近
                 </span>
               ) : null}
             </button>
@@ -589,7 +593,7 @@ export function QuickEntryWidget({ navigateTo }: { navigateTo: (path: string) =>
                 });
               }}
             >
-              {pinnedSet.has(entry.id) ? 'Unpin' : 'Pin'}
+              {pinnedSet.has(entry.id) ? '取消置顶' : '置顶'}
             </button>
           </div>
         ))}
@@ -665,7 +669,7 @@ export function AiAssistantWidget({
     createMessage(
       'assistant',
       [
-        '你好，我是 AI Assistant。',
+        '你好，我是 AI 助手。',
         '示例：',
         '- 今天有哪些告警？',
         '- 帮我打开设备中心',
@@ -699,7 +703,7 @@ export function AiAssistantWidget({
             '- 今天有哪些告警？',
             '- 帮我打开设备中心',
             '- 查询最近 AI 调用',
-            '- 打开 Workflow / Agent / 系统管理'
+            '- 打开 工作流 / 智能体 / 系统管理'
           ].join('\n')
         )
       ]);
@@ -757,7 +761,7 @@ export function AiAssistantWidget({
   };
 
   return (
-    <WidgetContainer title="AI Assistant" state="ready">
+    <WidgetContainer title="AI 助手" state="ready">
       <div className="flex h-80 flex-col gap-3">
         <div className="flex-1 space-y-2 overflow-y-auto rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
           {messages.map((msg) => (
@@ -795,7 +799,7 @@ export function AiAssistantWidget({
             className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-cyan-400 disabled:opacity-50"
             disabled={sending}
           >
-            Send
+            发送
           </button>
         </form>
       </div>

@@ -18,7 +18,7 @@ export default function AppHeader() {
 
   return (
     <header className="border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 lg:px-6">
+      <div className="flex w-full items-center justify-between px-3 py-4 lg:px-4">
         <div>
           <p className="text-lg font-semibold text-slate-900">{appStore.title}</p>
           <p className="text-sm text-slate-500">{headerSubtitle}</p>

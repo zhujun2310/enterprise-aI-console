@@ -57,14 +57,14 @@ export default function WidgetConfigPanel({
     <div className="fixed inset-0 z-50 flex">
       <button
         type="button"
-        aria-label="Close widget config"
+        aria-label="关闭组件配置"
         className="absolute inset-0 bg-slate-950/40"
         onClick={onClose}
       />
       <aside className="relative ml-auto h-full w-full max-w-md overflow-y-auto bg-white p-6 shadow-xl">
         <header className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Dashboard</p>
+            <p className="text-sm uppercase tracking-[0.25em] text-slate-400">首页</p>
             <h2 className="mt-1 text-xl font-semibold text-slate-900">Widget 配置中心</h2>
           </div>
           <button
@@ -72,7 +72,7 @@ export default function WidgetConfigPanel({
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
             onClick={onClose}
           >
-            Close
+            关闭
           </button>
         </header>
 
@@ -98,7 +98,7 @@ export default function WidgetConfigPanel({
                         onToggleVisible(def.id, event.currentTarget.checked);
                       }}
                     />
-                    Visible
+                    显示
                   </label>
                 </div>
 
@@ -111,7 +111,7 @@ export default function WidgetConfigPanel({
                       onMove(def.id, 'up');
                     }}
                   >
-                    Move up
+                    上移
                   </button>
                   <button
                     type="button"
@@ -121,7 +121,7 @@ export default function WidgetConfigPanel({
                       onMove(def.id, 'down');
                     }}
                   >
-                    Move down
+                    下移
                   </button>
                 </div>
 

@@ -5,13 +5,18 @@ import { useAuthStore } from '../stores/auth';
 import Agents from '../views/Agents';
 import AiCopilot from '../views/AiCopilot';
 import Dashboard from '../views/Dashboard';
-import Devices from '../views/Devices';
 import Forbidden from '../views/Forbidden';
 import Login from '../views/Login';
 import Screens from '../views/Screens';
 import System from '../views/System';
 import Users from '../views/Users';
 import Workflows from '../views/Workflows';
+import DeviceCenterShell from '../modules/device';
+import DeviceListView from '../modules/device/views/DeviceList';
+import DeviceDetailView from '../modules/device/views/DeviceDetail';
+import DeviceMonitorView from '../modules/device/views/DeviceMonitor';
+import AlarmCenterView from '../modules/device/views/AlarmCenter';
+import OperationCenterView from '../modules/device/views/OperationCenter';
 
 function LoadingScreen() {
   return (
@@ -123,11 +128,17 @@ export default function AppRouter() {
             <Route
               path="/devices"
               element={
-                <PermissionRoute permissionCode="dashboard:view">
-                  <Devices />
+                <PermissionRoute permissionCode="device:view">
+                  <DeviceCenterShell />
                 </PermissionRoute>
               }
-            />
+            >
+              <Route index element={<DeviceListView />} />
+              <Route path="alarms" element={<AlarmCenterView />} />
+              <Route path="ops" element={<OperationCenterView />} />
+              <Route path=":deviceId/monitor" element={<DeviceMonitorView />} />
+              <Route path=":deviceId" element={<DeviceDetailView />} />
+            </Route>
             <Route
               path="/ai-copilot"
               element={

@@ -65,58 +65,63 @@ const DEFAULT_PASSWORD = 'changeme123';
 let userSequence = 3;
 
 export const permissions: Record<
-  'dashboardView' | 'userCreate' | 'userEdit' | 'userDelete',
+  'dashboardView' | 'deviceView' | 'userCreate' | 'userEdit' | 'userDelete',
   Permission
 > = {
   dashboardView: {
     id: 'dashboard:view',
-    name: 'Dashboard View',
-    description: 'Allows reading the dashboard page and dashboard APIs.'
+    name: '首页访问',
+    description: '允许访问首页页面及相关接口。'
+  },
+  deviceView: {
+    id: 'device:view',
+    name: '设备中心访问',
+    description: '允许访问设备中心模块及其页面。'
   },
   userCreate: {
     id: 'user:create',
-    name: 'User Create',
-    description: 'Allows creating users and opening user management pages.'
+    name: '用户创建',
+    description: '允许创建用户并访问用户管理页面。'
   },
   userEdit: {
     id: 'user:edit',
-    name: 'User Edit',
-    description: 'Allows editing user data.'
+    name: '用户编辑',
+    description: '允许编辑用户数据。'
   },
   userDelete: {
     id: 'user:delete',
-    name: 'User Delete',
-    description: 'Allows deleting users.'
+    name: '用户删除',
+    description: '允许删除用户。'
   }
 };
 
 export const roles: Record<RoleId, Role> = {
   admin: {
     id: 'admin',
-    name: 'Administrator',
+    name: '管理员',
     permissions: Object.values(permissions)
   },
   viewer: {
     id: 'viewer',
-    name: 'Viewer',
-    permissions: [permissions.dashboardView]
+    name: '只读用户',
+    permissions: [permissions.dashboardView, permissions.deviceView]
   }
 };
 
 export const defaultMenus: Menu[] = [
   {
     id: 'dashboard',
-    name: 'Dashboard',
+    name: '首页',
     path: '/dashboard',
     icon: 'i-lucide-layout-dashboard',
     permissionCode: permissions.dashboardView.id
   },
   {
     id: 'devices',
-    name: 'Devices',
+    name: '设备中心',
     path: '/devices',
     icon: 'i-lucide-cpu',
-    permissionCode: permissions.dashboardView.id
+    permissionCode: permissions.deviceView.id
   },
   {
     id: 'ai-copilot',
@@ -127,35 +132,35 @@ export const defaultMenus: Menu[] = [
   },
   {
     id: 'agents',
-    name: 'Agents',
+    name: '智能体',
     path: '/agents',
     icon: 'i-lucide-bot',
     permissionCode: permissions.dashboardView.id
   },
   {
     id: 'workflows',
-    name: 'Workflows',
+    name: '工作流',
     path: '/workflows',
     icon: 'i-lucide-git-branch',
     permissionCode: permissions.dashboardView.id
   },
   {
     id: 'screens',
-    name: 'Screens',
+    name: '数字大屏',
     path: '/screens',
     icon: 'i-lucide-monitor',
     permissionCode: permissions.dashboardView.id
   },
   {
     id: 'system',
-    name: 'System',
+    name: '系统管理',
     path: '/system',
     icon: 'i-lucide-settings',
     permissionCode: permissions.dashboardView.id
   },
   {
     id: 'users',
-    name: 'Users',
+    name: '用户管理',
     path: '/users',
     icon: 'i-lucide-users',
     permissionCode: permissions.userCreate.id

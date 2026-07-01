@@ -55,7 +55,7 @@ function getDefaultDefinitions(ctx: {
   return [
     {
       id: 'kpi',
-      title: 'KPI Cards',
+      title: 'KPI 卡片',
       permissionCode: permission,
       defaultLayout: { id: 'kpi', order: 0, colSpanLg: 2 },
       defaultConfig: { id: 'kpi', visible: true, refreshIntervalMs: 15000 },
@@ -69,7 +69,7 @@ function getDefaultDefinitions(ctx: {
     } satisfies WidgetDefinition,
     {
       id: 'business_overview',
-      title: 'Business Overview',
+      title: '业务概览',
       permissionCode: permission,
       defaultLayout: { id: 'business_overview', order: 1, colSpanLg: 1 },
       defaultConfig: { id: 'business_overview', visible: true, refreshIntervalMs: null },
@@ -82,7 +82,7 @@ function getDefaultDefinitions(ctx: {
     } satisfies WidgetDefinition,
     {
       id: 'ai_assistant',
-      title: 'AI Assistant',
+      title: 'AI 助手',
       permissionCode: permission,
       defaultLayout: { id: 'ai_assistant', order: 2, colSpanLg: 1 },
       defaultConfig: { id: 'ai_assistant', visible: true, refreshIntervalMs: null },
@@ -97,7 +97,7 @@ function getDefaultDefinitions(ctx: {
     } satisfies WidgetDefinition,
     {
       id: 'device_status',
-      title: 'Device Status',
+      title: '设备状态',
       permissionCode: permission,
       defaultLayout: { id: 'device_status', order: 3, colSpanLg: 1 },
       defaultConfig: { id: 'device_status', visible: true, refreshIntervalMs: 15000 },
@@ -105,7 +105,7 @@ function getDefaultDefinitions(ctx: {
     } satisfies WidgetDefinition,
     {
       id: 'alarm_center',
-      title: 'Alarm Center',
+      title: '告警中心',
       permissionCode: permission,
       defaultLayout: { id: 'alarm_center', order: 4, colSpanLg: 1 },
       defaultConfig: { id: 'alarm_center', visible: true, refreshIntervalMs: 10000 },
@@ -115,7 +115,7 @@ function getDefaultDefinitions(ctx: {
     } satisfies WidgetDefinition,
     {
       id: 'realtime_trend',
-      title: 'Realtime Trend',
+      title: '实时趋势',
       permissionCode: permission,
       defaultLayout: { id: 'realtime_trend', order: 5, colSpanLg: 2 },
       defaultConfig: { id: 'realtime_trend', visible: true, refreshIntervalMs: 15000 },
@@ -123,7 +123,7 @@ function getDefaultDefinitions(ctx: {
     } satisfies WidgetDefinition,
     {
       id: 'quick_entry',
-      title: 'Quick Entry',
+      title: '快捷入口',
       permissionCode: permission,
       defaultLayout: { id: 'quick_entry', order: 6, colSpanLg: 1 },
       defaultConfig: { id: 'quick_entry', visible: true, refreshIntervalMs: null },
@@ -176,6 +176,8 @@ export default function DashboardPage() {
   const [refreshSignals, setRefreshSignals] = useState<Partial<Record<WidgetId, number>>>({});
   const [refreshAllSignal, setRefreshAllSignal] = useState(0);
   const dataRef = useRef(data);
+  const hasLoadedSnapshotRef = useRef(false);
+  const lastPassiveRefreshAtRef = useRef(0);
 
   useEffect(() => {
     dataRef.current = data;
@@ -260,32 +262,40 @@ export default function DashboardPage() {
     return Array.from(configMap.values());
   }, [definitions, prefs.configs]);
 
-  const refreshSnapshot = useCallback(async () => {
-    if (!token) {
-      return;
-    }
+  const refreshSnapshot = useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (!token) {
+        return;
+      }
 
-    setLoadingSnapshot(true);
-    setSnapshotError(null);
+      if (!options?.silent) {
+        setLoadingSnapshot(true);
+      }
+      setSnapshotError(null);
 
-    try {
-      const response = await getDashboardSnapshot(token);
-      setData((prev) => ({
-        ...prev,
-        kpis: response.kpis,
-        deviceStatus: response.deviceStatus,
-        alarms: response.alarms,
-        trend: response.trend,
-        updatedAt: response.updatedAt
-      }));
-    } catch (error: unknown) {
-      setSnapshotError(
-        error instanceof Error ? error.message : 'Failed to load dashboard snapshot.'
-      );
-    } finally {
-      setLoadingSnapshot(false);
-    }
-  }, [token]);
+      try {
+        const response = await getDashboardSnapshot(token);
+        setData((prev) => ({
+          ...prev,
+          kpis: response.kpis,
+          deviceStatus: response.deviceStatus,
+          alarms: response.alarms,
+          trend: response.trend,
+          updatedAt: response.updatedAt
+        }));
+        hasLoadedSnapshotRef.current = true;
+      } catch (error: unknown) {
+        setSnapshotError(
+          error instanceof Error ? error.message : 'Failed to load dashboard snapshot.'
+        );
+      } finally {
+        if (!options?.silent) {
+          setLoadingSnapshot(false);
+        }
+      }
+    },
+    [token]
+  );
 
   const refreshDailySummary = useCallback(async () => {
     if (!token) {
@@ -307,12 +317,27 @@ export default function DashboardPage() {
   }, [token]);
 
   useEffect(() => {
-    void refreshSnapshot();
+    void refreshSnapshot({ silent: hasLoadedSnapshotRef.current });
   }, [refreshSnapshot, refreshAllSignal]);
 
   useEffect(() => {
     void refreshDailySummary();
   }, [refreshDailySummary, dailySummaryRefreshSignal]);
+
+  const passiveRefresh = useCallback(async () => {
+    if (!token) {
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastPassiveRefreshAtRef.current < 10_000) {
+      return;
+    }
+
+    lastPassiveRefreshAtRef.current = now;
+    await refreshSnapshot({ silent: true });
+    await refreshDailySummary();
+  }, [refreshDailySummary, refreshSnapshot, token]);
 
   const sseUrl = useMemo(() => {
     if (!token) {
@@ -372,35 +397,36 @@ export default function DashboardPage() {
     }
   });
 
-  const autoRefreshTimerMap = useMemo(() => new Map<WidgetId, number>(), []);
+  const previousSseStatusRef = useRef(sseState.status);
 
   useEffect(() => {
-    autoRefreshTimerMap.forEach((timer) => window.clearInterval(timer));
-    autoRefreshTimerMap.clear();
+    const onFocus = () => {
+      void passiveRefresh();
+    };
 
-    for (const config of mergedConfigs) {
-      if (config.refreshIntervalMs === null) {
-        continue;
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void passiveRefresh();
       }
-      if (config.id === 'ai_daily_summary') {
-        const timer = window.setInterval(() => {
-          requestRefresh('ai_daily_summary');
-        }, config.refreshIntervalMs);
-        autoRefreshTimerMap.set(config.id, timer);
-        continue;
-      }
+    };
 
-      const timer = window.setInterval(() => {
-        requestRefreshAll();
-      }, config.refreshIntervalMs);
-      autoRefreshTimerMap.set(config.id, timer);
-    }
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
-      autoRefreshTimerMap.forEach((timer) => window.clearInterval(timer));
-      autoRefreshTimerMap.clear();
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [autoRefreshTimerMap, mergedConfigs, requestRefresh, requestRefreshAll]);
+  }, [passiveRefresh]);
+
+  useEffect(() => {
+    const previous = previousSseStatusRef.current;
+    previousSseStatusRef.current = sseState.status;
+
+    if (previous !== 'open' && sseState.status === 'open') {
+      void passiveRefresh();
+    }
+  }, [passiveRefresh, sseState.status]);
 
   const items = useMemo(() => {
     return visibleDefinitions.map((def) => {
@@ -431,14 +457,14 @@ export default function DashboardPage() {
       return snapshotError;
     }
     if (loadingSnapshot) {
-      return 'Loading dashboard snapshot...';
+      return '正在加载首页快照...';
     }
     if (sseUrl) {
       if (sseState.status === 'open') {
-        return 'Realtime connected.';
+        return '实时连接已建立。';
       }
       if (sseState.status === 'error') {
-        return 'Realtime disconnected, reconnecting...';
+        return '实时连接断开，正在重连...';
       }
     }
     return null;
@@ -446,12 +472,14 @@ export default function DashboardPage() {
 
   const headerTone = snapshotError ? 'rose' : sseState.status === 'open' ? 'cyan' : 'slate';
 
+  const shouldShowBanner = headerMessage !== null;
+
   return (
     <div className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Dashboard</p>
-          <h1 className="mt-2 text-3xl font-semibold text-slate-900">AI Native Console</h1>
+          <p className="text-sm uppercase tracking-[0.25em] text-slate-400">首页</p>
+          <h1 className="mt-2 text-3xl font-semibold text-slate-900">数据看板</h1>
           <p className="mt-2 text-slate-500">
             企业级后台业务入口：KPI、告警、设备、趋势与 AI 助手。
           </p>
@@ -473,25 +501,25 @@ export default function DashboardPage() {
               requestRefreshAll();
             }}
           >
-            Refresh All
+            全部刷新
           </button>
         </div>
       </header>
 
-      {headerMessage ? (
-        <div
-          className={[
-            'rounded-2xl border px-4 py-3 text-sm',
-            headerTone === 'rose'
-              ? 'border-rose-200 bg-rose-50 text-rose-700'
-              : headerTone === 'cyan'
-                ? 'border-cyan-200 bg-cyan-50 text-cyan-800'
-                : 'border-slate-200 bg-slate-50 text-slate-600'
-          ].join(' ')}
-        >
-          {headerMessage}
-        </div>
-      ) : null}
+      <div
+        aria-hidden={!shouldShowBanner}
+        className={[
+          'rounded-2xl border px-4 py-3 text-sm',
+          shouldShowBanner ? '' : 'invisible',
+          headerTone === 'rose'
+            ? 'border-rose-200 bg-rose-50 text-rose-700'
+            : headerTone === 'cyan'
+              ? 'border-cyan-200 bg-cyan-50 text-cyan-800'
+              : 'border-slate-200 bg-slate-50 text-slate-600'
+        ].join(' ')}
+      >
+        {headerMessage ?? ' '}
+      </div>
 
       <WidgetGrid items={items} />
 
@@ -522,24 +550,30 @@ export default function DashboardPage() {
         }}
       />
 
-      <WidgetContainer title="System Status" state="ready" onRefresh={refreshSnapshot}>
+      <WidgetContainer
+        title="系统状态"
+        state="ready"
+        onRefresh={() => {
+          void refreshSnapshot();
+        }}
+      >
         <dl className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
           <div className="flex justify-between gap-3">
-            <dt>Current User</dt>
+            <dt>当前用户</dt>
             <dd className="font-medium text-slate-900">{authStore.user?.username ?? '-'}</dd>
           </div>
           <div className="flex justify-between gap-3">
-            <dt>Roles</dt>
+            <dt>角色</dt>
             <dd className="font-medium text-slate-900">
               {authStore.roles.map((role) => role.id).join(', ') || '-'}
             </dd>
           </div>
           <div className="flex justify-between gap-3">
-            <dt>Realtime</dt>
+            <dt>实时连接</dt>
             <dd className="font-medium text-slate-900">{sseUrl ? sseState.status : '-'}</dd>
           </div>
           <div className="flex justify-between gap-3">
-            <dt>Last Update</dt>
+            <dt>最后更新</dt>
             <dd className="font-medium text-slate-900">{data.updatedAt ?? '-'}</dd>
           </div>
         </dl>

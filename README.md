@@ -1,6 +1,6 @@
 # Enterprise AI Console
 
-Enterprise AI Console 是一个面向企业 AI 场景的 Monorepo 初始化项目，当前阶段仅完成基础设施搭建，为后续认证、RBAC、AI Agent、拓扑和模块化业务开发提供统一工程底座。
+Enterprise AI Console 是一个面向企业 AI 场景的 Monorepo 项目，当前已完成基础工程与 `Sprint 3` 设备中心模块，可继续在此基础上扩展认证、RBAC、AI Agent、拓扑和行业业务能力。
 
 ## 已完成内容
 
@@ -13,6 +13,7 @@ Enterprise AI Console 是一个面向企业 AI 场景的 Monorepo 初始化项�
 - ESLint、Prettier、Husky、lint-staged、Commitlint
 - GitHub Actions CI
 - `docs/*` 文档目录初始化
+- `Sprint 3` 设备中心主链路：设备列表、设备详情、实时监控、告警中心、运维中心
 
 ## 目录结构
 
@@ -95,6 +96,12 @@ pnpm commit
 - 基于 `AuthProvider + useAuthStore()` 的认证、会话恢复和权限派生
 - 基于 `filterMenus()` 的菜单过滤
 - 基于 `hasPermission()` 的按钮级条件渲染
+- `Device Center` 模块：
+- 设备列表，支持搜索、筛选、排序、分页、固定列与详情/监控/日志跳转
+- 设备详情，展示基础信息、属性信息、状态信息、最近告警与最近操作
+- 实时监控，支持趋势图、仪表盘、链路指标、历史曲线与 Mock 自动刷新
+- 告警中心，支持等级/状态筛选、详情查看与确认/忽略/已处理流转
+- 运维中心，支持区域/类型/标签分组、操作日志查询与批量操作
 
 ### Server
 
